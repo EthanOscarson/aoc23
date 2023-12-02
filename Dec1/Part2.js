@@ -1,29 +1,25 @@
+//After watching Low Level Learnings solution for this problem, I realized a much simpler way to solve this problem.
+//Instead of extracting all digits from the string and adding them to an array, I use his method of creating a singular left and right variable.
+//Other than that, this is pretty different as he used c++ and I used javascript.
+//Very happy to have solved this!
+
 const fs = require('fs');
 
 const filePath = './input.txt';
-const numberRegex = /^[0-9]$/; //Magic spell to detect digits :)
 
-function preprocess(line) {
-    //This function needs to replace each spelled out digit with a number
-    //For example, "one" becomes "1"
-    //But also oneight becomes both "1" and "8"
-    //So instead of replacing the string, we'll just add the digit in the array
-    const letterDigits = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
-    console.log(line)
-    for (let i = 0; i < letterDigits.length; i++) {
-        let digit = letterDigits[i];
-        let index = line.indexOf(digit)
-        if(index != -1) {
-            line = line.split('');
-            line.splice(index, digit.length-1, letterDigits.indexOf(digit));
-            line = line.join('');
-            i--;
+const letterDigits = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+
+function matchDigit (str) {
+    if (str[0].match(/[0-9]/)) { //If it is a number
+        return str[0] - 0; //Convert to number & return
+    } else {
+        for(let i = 0; i < letterDigits.length; i++) { //For each of the letterDigits
+            if (str.startsWith(letterDigits[i])) { //If the string starts with one
+                return i;//Return the index which is also the actual number
+            }
         }
     }
-
-    //Grrrrr problem is that with numbers that share letters it will replace the letters so that it goes from 0-9 in priority. I think solving this is really difficult in my current implementation
-    console.log(line)
-    return line;
+    return null; //Return null if no match
 }
 
 fs.readFile(filePath, 'utf8', (err, text) => {
@@ -37,16 +33,25 @@ fs.readFile(filePath, 'utf8', (err, text) => {
     const calibrationVals = []; //The result of each of the lines
 
     lines.forEach(line => {
-        const digits = []; //This array contains all the digits
-        line = preprocess(line);
-        for (const char of line) {
-            if (numberRegex.test(char)) {
-                digits.push(parseInt(char));
+        let left = -1;
+        let right = 0; //This array contains all the digits
+        for (let i = 0; i < line.length; i++) {
+            let digit = matchDigit(line.slice(i, i + 5));//Check if this iteration matches a digit 
+            if(digit !== null) { //If there is a match
+                if(left === -1) {//If the left one hasn't been set
+                    left = digit;
+                    right = digit;
+                    //Set both to the digit
+                } else {//Otherwise
+                    right = digit;
+                    //Just set the right one
+                }
             }
+           
             //For each, if it's a digit add it to the digits array
         }
-        console.log(digits[0] + '' + digits[digits.length - 1])
-        calibrationVals.push(digits[0] + '' + digits[digits.length - 1]); //Add the first and last digits to the calibrationVals array
+    
+        calibrationVals.push(left + '' + right);//Convert to string & add to calibrationVals array
     })
 
     //Next add all calibration vals together
